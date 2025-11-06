@@ -7,20 +7,30 @@ const axios = require("axios"); // ✅ add this at top
 require("dotenv").config(); // 2 line
 
 module.exports.index = async (req, res) => {
-  const allListings = await Listing.find({});
+  console.log("Fetching listings...");
+  try {
+    const allListings = await Listing.find({});
+    console.log(`Found ${allListings.length} listings`);
 
-  const locations = [...new Set(allListings.map(listing => listing.location))];
-  const { location } = req.query;
+    const locations = [...new Set(allListings.map(listing => listing.location))];
+    console.log(`Available locations: ${locations.join(', ')}`);
+    const { location } = req.query;
     let filteredListings = allListings;
     if (location) {
       filteredListings = allListings.filter(l => l.location === location);
     }
    
-  res.render("listings/index.ejs", { 
-    allListings:filteredListings,
-  locations,
-currUser:req.user
- });
+    res.render("listings/index.ejs", { 
+      allListings: filteredListings,
+      locations,
+      currUser: req.user
+    });
+  } catch (err) {
+    console.error("Error fetching listings:", err);
+    res.status(500).render("error.ejs", { 
+      message: "Error loading listings. Please try again later." 
+    });
+  }
 };
 
  

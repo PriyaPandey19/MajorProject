@@ -1,8 +1,15 @@
-if(process.env.NODE_ENV != "production"){
-  require('dotenv').config();
-}
+// Load environment variables
+// Load environment variables
+require('dotenv').config();
 
 // Debug logging
+console.log("Environment setup:");
+console.log("- NODE_ENV:", process.env.NODE_ENV);
+console.log("- Database URL configured:", process.env.ATLASDB_URL ? "Yes" : "No");
+console.log("- Secret configured:", process.env.SECRET ? "Yes" : "No");
+console.log("Environment:", process.env.NODE_ENV);
+console.log("MongoDB URL configured:", process.env.ATLASDB_URL ? "Yes" : "No");
+console.log("Application starting...");// Debug logging
 console.log("Environment:", process.env.NODE_ENV);
 console.log("Database URL:", process.env.ATLASDB_URL ? "MongoDB Atlas URL configured" : "MongoDB Atlas URL not found");
 console.log("Secret:", process.env.SECRET);
@@ -61,14 +68,26 @@ main()
 
 async function main(){
     try {
+        console.log("Attempting to connect to MongoDB...");
+        console.log("Database URL format check:", dbUrl.startsWith("mongodb://") ? "Standard format" : "DNS seedlist format");
         await mongoose.connect(dbUrl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 30000,
+            ssl: true,
+            tls: true,
+            tlsAllowInvalidCertificates: false,
+            retryWrites: true,
+            w: "majority"
         });
-        console.log("MongoDB Connected Successfully");
+        console.log("MongoDB Connected Successfully to:", dbUrl);
     } catch (err) {
         console.error("MongoDB Connection Error:", err);
+        // Log more details about the connection attempt
+        console.error("Connection Details:", {
+            url: dbUrl.replace(/mongodb\+srv:\/\/[^:]+:[^@]+@/, 'mongodb+srv://[username]:[password]@'),
+            error: err.message
+        });
         throw err;
     }
 }
@@ -146,8 +165,8 @@ app.get("/", (req, res) => {
 
 
 
-// Handle 404s
-app.all("*", (req, res, next) => {
+// Handle 404s - catch all unmatched routes
+app.use((req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 });
 
