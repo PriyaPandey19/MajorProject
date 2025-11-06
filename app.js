@@ -7,7 +7,6 @@ console.log(process.env.SECRET)
 const express = require("express");
 const mongoose = require("mongoose");
 const Listing = require("./models/listing");
-
 const app = express();
 const path = require("path");
 const methodOverride = require("method-override");
@@ -112,61 +111,11 @@ passport.deserializeUser(User.deserializeUser());
 
 
 
-// app.use((req,res,next) =>{
-//     res.locals.currUser = req.user; 
-//  res.locals.success = req.flash("success");
-//   res.locals.error = req.flash("error");
-//     next();
-// })
-
-
-
-
-// app.use(async (req, res, next) => {
-//   try {
-//     // Fetch all locations from the database (only `location` field)
-//     const allListings = await Listing.find({}, "location");
-//     const uniqueLocations = [...new Set(allListings.map(l => l.location))];
-
-//     // Make them globally available to every EJS file
-//     res.locals.locations = uniqueLocations;
-//   } catch (err) {
-//     console.error("Error fetching locations:", err.message);
-//     res.locals.locations = [];
-//   }
-
-//   // ✅ Also pass logged-in user globally for navbar
-//   res.locals.currUser = req.user;
-
-//   next();
-// });
-
-
-
-
-
-
 app.use("/listings",listingRouter);
 app.use("/listings/:id/reviews",reviewRouter);
 app.use("/",userRouter);
 
 
-
-
-
-
-// app.get("/testListing", async(req, res) =>{
-// let sampleListing = new Listing({
-//     title:"My new Villa",
-//     description: "By the beach",
-//     price:1200,
-//     location:"Calangute, Goa",
-//     country: "India",   
-// });
-// await sampleListing.save();
-// console.log("sample was saved"); 
-// res.send("successfully testing");
-// })
 
 app.all(/.*/,(req,res,next) =>{
     next(new ExpressError(404, "Page Not Found!"));
@@ -177,10 +126,6 @@ app.use((err, req, res,next) =>{
  //res.status(statusCode).send(message);
 });
 
-app.listen(8080, ()=>{
-    console.log("server is listening to port 8080");
-})
-
 
 app.use((req,res,next) =>{
     res.locals.currUser = req.user; 
@@ -188,3 +133,8 @@ app.use((req,res,next) =>{
   res.locals.error = req.flash("error");
     next();
 })
+app.listen(8080, ()=>{
+    console.log("server is listening to port 8080");
+})
+
+
