@@ -21,8 +21,8 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-//const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
-const dbUrl = process.env.ATLASDB_URL;
+const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+const dbUrl = "mongodb://127.0.0.1:27017/wanderlust";
 
 app.use(async (req, res, next) => {
   try {
@@ -36,10 +36,6 @@ app.use(async (req, res, next) => {
     console.error("Error fetching locations:", err.message);
     res.locals.locations = [];
   }
-
-  // ✅ Also pass logged-in user globally for navbar
-  res.locals.currUser = req.user;
-
   next();
  });
 
@@ -85,23 +81,24 @@ store.on("error",() =>{
 })
 
 const sessionOptions = {
-  store,
-    secret:process.env.SECRET,
-    resave:false,
-    saveUninitialized:true,
-    cookie:{
-          httpOnly: true,
-          secure:false,
-          sameSite: "None",
-        expires:new Date(Date.now() +7 * 24 * 60 *60 *1000),
+    store,
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: false,  // changed to false for better security
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // only use secure in production
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
         maxAge: 7 * 24 * 60 * 60 * 1000
-    },
+    }
 };
 
 
+// Session must be before passport
 app.use(session(sessionOptions));
 app.use(flash());
 
+// Passport configuration
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
@@ -109,12 +106,15 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use((req,res,next) =>{
-    res.locals.currUser = req.user; 
- res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
+// Flash and user middleware
+app.use((req, res, next) => {
+    // Set current user for templates
+    res.locals.currUser = req.user;
+    // Set flash messages
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
     next();
-})
+});
 
 
 
