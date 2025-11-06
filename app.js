@@ -1,12 +1,15 @@
 // Load environment variables
+// Set environment
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
 // Load environment variables
 require('dotenv').config();
 
-// Debug logging
-console.log("Environment setup:");
-console.log("- NODE_ENV:", process.env.NODE_ENV);
-console.log("- Database URL configured:", process.env.ATLASDB_URL ? "Yes" : "No");
-console.log("- Secret configured:", process.env.SECRET ? "Yes" : "No");
+// Environment setup logging
+console.log(`Starting application in ${process.env.NODE_ENV} mode`);
+if (process.env.NODE_ENV === 'development') {
+    console.log('Debug: Environment variables loaded');
+}
 console.log("Environment:", process.env.NODE_ENV);
 console.log("MongoDB URL configured:", process.env.ATLASDB_URL ? "Yes" : "No");
 console.log("Application starting...");// Debug logging
@@ -69,16 +72,10 @@ main()
 async function main(){
     try {
         console.log("Attempting to connect to MongoDB...");
-        console.log("Database URL format check:", dbUrl.startsWith("mongodb://") ? "Standard format" : "DNS seedlist format");
         await mongoose.connect(dbUrl, {
+            // Remove deprecated options and use only necessary ones
             serverSelectionTimeoutMS: 30000,
-            socketTimeoutMS: 45000,
-            connectTimeoutMS: 30000,
-            ssl: true,
-            tls: true,
-            tlsAllowInvalidCertificates: false,
-            retryWrites: true,
-            w: "majority"
+            connectTimeoutMS: 30000
         });
         console.log("MongoDB Connected Successfully to:", dbUrl);
     } catch (err) {
@@ -121,13 +118,15 @@ const sessionOptions = {
     store,
     secret: process.env.SECRET,
     resave: false,
-    saveUninitialized: false,  // changed to false for better security
+    saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // only use secure in production
+        // Set secure based on environment
+        secure: process.env.NODE_ENV === 'production',
         expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
         maxAge: 7 * 24 * 60 * 60 * 1000
-    }
+    },
+    name: 'session' // Don't use default connect.sid
 };
 
 
@@ -177,7 +176,12 @@ app.use((req, res, next) => {
 
 const port = process.env.PORT || 8080;
 app.listen(port, "0.0.0.0", () => {
-    console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${port}`);
+    console.log(`Server started successfully:`);
+    console.log(`- Environment: ${process.env.NODE_ENV}`);
+    console.log(`- Port: ${port}`);
+    if (process.env.NODE_ENV === 'production') {
+        console.log('- Running in production mode');
+    }
 })
 
 app.use((err, req, res, next) => {
