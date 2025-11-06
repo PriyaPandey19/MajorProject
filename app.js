@@ -109,6 +109,14 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+app.use((req,res,next) =>{
+    res.locals.currUser = req.user; 
+ res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+    next();
+})
+
+
 
 
 app.use("/listings",listingRouter);
@@ -130,12 +138,6 @@ app.use((err, req, res,next) =>{
 
 app.listen(8080, ()=>{
     console.log("server is listening to port 8080");
-})
-app.use((req,res,next) =>{
-    res.locals.currUser = req.user; 
- res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-    next();
 })
 
 
