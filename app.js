@@ -25,7 +25,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-const dbUrl = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
+const dbUrl = process.env.MONGODB_URL || process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 app.use(async (req, res, next) => {
   try {
@@ -61,11 +61,15 @@ main()
 
 async function main(){
     try {
-        await mongoose.connect(dbUrl);
+        await mongoose.connect(dbUrl, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+        });
         console.log("MongoDB Connected Successfully");
     } catch (err) {
         console.error("MongoDB Connection Error:", err);
-        throw err;  // Re-throw to be caught by the outer catch
+        throw err;
     }
 }
 
@@ -77,12 +81,17 @@ app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
 const store = MongoStore.create({
-  mongoUrl: dbUrl,
-  crypto:{
-    secret:process.env.SECRET,
-
-  },
-  touchAfter: 24 * 3600,
+    mongoUrl: dbUrl,
+    crypto: {
+        secret: process.env.SECRET,
+    },
+    touchAfter: 24 * 3600,
+    ttl: 24 * 60 * 60, // = 1 day. Default
+    autoRemove: 'native', // Default
+    mongoOptions: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }
 });
 
 store.on("error",() =>{
@@ -137,7 +146,8 @@ app.get("/", (req, res) => {
 
 
 
-app.all(/.*/,(req,res,next) =>{
+// Handle 404s
+app.all("*", (req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 });
 
@@ -147,8 +157,8 @@ app.all(/.*/,(req,res,next) =>{
 
 
 const port = process.env.PORT || 8080;
-app.listen(port, ()=>{
-    console.log(`server is listening on port ${port}`);
+app.listen(port, "0.0.0.0", () => {
+    console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${port}`);
 })
 
 app.use((err, req, res, next) => {
