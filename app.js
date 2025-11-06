@@ -1,7 +1,11 @@
 if(process.env.NODE_ENV != "production"){
-require('dotenv').config();
+  require('dotenv').config();
 }
-console.log(process.env.SECRET)
+
+// Debug logging
+console.log("Environment:", process.env.NODE_ENV);
+console.log("Database URL:", process.env.ATLASDB_URL ? "MongoDB Atlas URL configured" : "MongoDB Atlas URL not found");
+console.log("Secret:", process.env.SECRET);
 
 
 const express = require("express");
@@ -21,7 +25,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-const dbUrl = process.env.MONGODB_URL || "mongodb://127.0.0.1:27017/wanderlust";
+const dbUrl = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 app.use(async (req, res, next) => {
   try {
