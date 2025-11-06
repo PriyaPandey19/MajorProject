@@ -1,12 +1,23 @@
 // Load environment variables
-// Set environment
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+// Production check
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Load environment variables
-require('dotenv').config();
+// Load environment variables only in development
+if (!isProduction) {
+    require('dotenv').config();
+}
 
-// Environment setup logging
-console.log(`Starting application in ${process.env.NODE_ENV} mode`);
+// Startup logging
+console.log(`Starting application in ${process.env.NODE_ENV || 'development'} mode`);
+
+// Validate required environment variables
+const requiredEnvVars = ['ATLASDB_URL', 'SECRET', 'CLOUD_NAME', 'CLOUD_API_KEY', 'CLOUD_API_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+    console.error('Missing required environment variables:', missingEnvVars);
+    process.exit(1);
+}
 if (process.env.NODE_ENV === 'development') {
     console.log('Debug: Environment variables loaded');
 }
@@ -158,8 +169,14 @@ app.use((req, res, next) => {
 app.use("/listings",listingRouter);
 app.use("/listings/:id/reviews",reviewRouter);
 app.use("/",userRouter);
+// Health check endpoint
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "healthy", environment: process.env.NODE_ENV });
+});
+
+// Root redirect
 app.get("/", (req, res) => {
-  res.redirect("/listings");
+    res.redirect("/listings");
 });
 
 
@@ -184,13 +201,33 @@ app.listen(port, "0.0.0.0", () => {
     }
 })
 
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error("Error:", err);  // Log the full error
-  let { statusCode = 500, message = "Something went wrong!" } = err;
-  if (process.env.NODE_ENV === "production") {
-    // In production, don't expose error details
-    message = statusCode === 404 ? "Page Not Found!" : "Something went wrong!";
-  }
-  res.status(statusCode).render("error.ejs", { message });
+    // Log error details (only detailed in development)
+    if (!isProduction) {
+        console.error("Error details:", {
+            message: err.message,
+            stack: err.stack,
+            status: err.statusCode || 500
+        });
+    } else {
+        console.error("Production error:", err.message);
+    }
+
+    // Determine status code and message
+    const statusCode = err.statusCode || 500;
+    let message = err.message || "Something went wrong!";
+
+    // In production, use generic messages
+    if (isProduction) {
+        message = statusCode === 404 ? "Page Not Found!" : "An unexpected error occurred. Please try again later.";
+    }
+
+    // Handle different response types
+    if (req.accepts('html')) {
+        res.status(statusCode).render("error.ejs", { message, statusCode });
+    } else {
+        res.status(statusCode).json({ error: message });
+    }
 });
 
