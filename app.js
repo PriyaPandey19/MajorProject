@@ -21,8 +21,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
-const dbUrl = "mongodb://127.0.0.1:27017/wanderlust";
+const dbUrl = process.env.MONGODB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 app.use(async (req, res, next) => {
   try {
@@ -57,7 +56,13 @@ main()
 });
 
 async function main(){
-    await mongoose.connect(dbUrl);
+    try {
+        await mongoose.connect(dbUrl);
+        console.log("MongoDB Connected Successfully");
+    } catch (err) {
+        console.error("MongoDB Connection Error:", err);
+        throw err;  // Re-throw to be caught by the outer catch
+    }
 }
 
 app.set("view engine","ejs");
@@ -142,9 +147,13 @@ app.listen(port, ()=>{
     console.log(`server is listening on port ${port}`);
 })
 
-app.use((err, req, res,next) =>{
-  let { statusCode = 500, message = "Something went wrong!" } = err;  
- res.status(statusCode).render("error.ejs",{message});  
- //res.status(statusCode).send(message);
+app.use((err, req, res, next) => {
+  console.error("Error:", err);  // Log the full error
+  let { statusCode = 500, message = "Something went wrong!" } = err;
+  if (process.env.NODE_ENV === "production") {
+    // In production, don't expose error details
+    message = statusCode === 404 ? "Page Not Found!" : "Something went wrong!";
+  }
+  res.status(statusCode).render("error.ejs", { message });
 });
 
