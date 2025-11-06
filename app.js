@@ -6,6 +6,8 @@ console.log(process.env.SECRET)
 
 const express = require("express");
 const mongoose = require("mongoose");
+const Listing = require("./models/listing");
+
 const app = express();
 const path = require("path");
 const methodOverride = require("method-override");
