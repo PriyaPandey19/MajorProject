@@ -23,24 +23,24 @@ const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
 
-// app.use(async (req, res, next) => {
-//   try {
-//     // Fetch all locations from the database (only `location` field)
-//     const allListings = await Listing.find({}, "location");
-//     const uniqueLocations = [...new Set(allListings.map(l => l.location))];
+app.use(async (req, res, next) => {
+  try {
+    // Fetch all locations from the database (only `location` field)
+    const allListings = await Listing.find({}, "location");
+    const uniqueLocations = [...new Set(allListings.map(l => l.location))];
 
-//     // Make them globally available to every EJS file
-//     res.locals.locations = uniqueLocations;
-//   } catch (err) {
-//     console.error("Error fetching locations:", err.message);
-//     res.locals.locations = [];
-//   }
+    // Make them globally available to every EJS file
+    res.locals.locations = uniqueLocations;
+  } catch (err) {
+    console.error("Error fetching locations:", err.message);
+    res.locals.locations = [];
+  }
 
-//   // ✅ Also pass logged-in user globally for navbar
-//   res.locals.currUser = req.user;
+  // ✅ Also pass logged-in user globally for navbar
+  res.locals.currUser = req.user;
 
-//   next();
-// });
+  next();
+ });
 
 
 
@@ -115,34 +115,34 @@ passport.deserializeUser(User.deserializeUser());
 
 
 
-app.use((req,res,next) =>{
-    res.locals.currUser = req.user; 
- res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-    next();
-})
+// app.use((req,res,next) =>{
+//     res.locals.currUser = req.user; 
+//  res.locals.success = req.flash("success");
+//   res.locals.error = req.flash("error");
+//     next();
+// })
 
 
 
-// ✅ Make locations & currUser available in all views
-app.use(async (req, res, next) => {
-  try {
-    // Fetch all locations from the database (only `location` field)
-    const allListings = await Listing.find({}, "location");
-    const uniqueLocations = [...new Set(allListings.map(l => l.location))];
 
-    // Make them globally available to every EJS file
-    res.locals.locations = uniqueLocations;
-  } catch (err) {
-    console.error("Error fetching locations:", err.message);
-    res.locals.locations = [];
-  }
+// app.use(async (req, res, next) => {
+//   try {
+//     // Fetch all locations from the database (only `location` field)
+//     const allListings = await Listing.find({}, "location");
+//     const uniqueLocations = [...new Set(allListings.map(l => l.location))];
 
-  // ✅ Also pass logged-in user globally for navbar
-  res.locals.currUser = req.user;
+//     // Make them globally available to every EJS file
+//     res.locals.locations = uniqueLocations;
+//   } catch (err) {
+//     console.error("Error fetching locations:", err.message);
+//     res.locals.locations = [];
+//   }
 
-  next();
-});
+//   // ✅ Also pass logged-in user globally for navbar
+//   res.locals.currUser = req.user;
+
+//   next();
+// });
 
 
 
@@ -185,9 +185,9 @@ app.listen(8080, ()=>{
 })
 
 
-// app.use((req,res,next) =>{
-//     res.locals.currUser = req.user; 
-//  res.locals.success = req.flash("success");
-//   res.locals.error = req.flash("error");
-//     next();
-// })
+app.use((req,res,next) =>{
+    res.locals.currUser = req.user; 
+ res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+    next();
+})
