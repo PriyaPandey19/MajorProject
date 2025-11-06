@@ -96,6 +96,9 @@ const sessionOptions = {
     resave:false,
     saveUninitialized:true,
     cookie:{
+          httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // send cookie only over HTTPS
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", 
         expires:Date.now() +7 * 24 * 60 *60 *1000,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly:true
