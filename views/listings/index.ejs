@@ -1,9 +1,240 @@
-<%- layout("/layouts/boilerplate") %>
+<%- layout("layouts/boilerplate") %>
 <body>
-    <h3>All listings</h3>
+    <style>
+        #filters {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            flex: 1;
+            white-space: nowrap;
+        }
+
+        #filters::-webkit-scrollbar {
+            display: none;
+            /* Hide scrollbar - Chrome/Safari */
+        }
+
+        .filter {
+            text-align: center;
+            margin-right: 2rem;
+            margin-top: 2rem;
+            opacity: 0.7;
+            flex: 0 0 auto;
+            transition: 0.3s;
+        }
+
+        .filter:hover {
+            opacity: 1;
+            cursor: pointer;
+            transform: scale(1.08);
+        }
+
+        .filter p {
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+        }
+
+        .tax-info {
+            display: none;
+        }
+
+        .tax-toggle {
+            border: 1px solid black;
+            border-radius: 1rem;
+            height: 2.5rem;
+            padding: 0 1rem;
+            margin-left: 1rem;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+
+        }
+
+        .filter-carousel-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            position: relative;
+            flex-wrap: nowrap;
+        }
+
+        .scroll-btn {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+
+        .scroll-btn:hover {
+            background-color: #f2f2f2;
+        }
+
+        .scroll-btn.left {
+            left: 0;
+        }
+
+        .scroll-btn.right {
+            right: 20rem;
+        }
+
+        .scroll-btn i {
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .red-btn {
+            background-color: #fff !important;
+            border: none !important;
+        }
+
+        .red-btn:hover {
+            background-color: #fe424d !important;
+        }
+
+        .wishlist-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            color: white;
+            background-color: transparent;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 5;
+            box-shadow: none;
+            transition: all 0.3s ease;
+
+        }
+
+        .wishlist-icon:active {
+            color: #ff385c;
+        }
+
+        .wishlist-icon:hover {
+            transform: scale(1.1);
+
+        }
+
+        .card-listing-card {
+            border: none;
+            transition: transform 0.2s ease;
+        }
+
+        .card-listing-card:hover {
+            transform: scale(1.02);
+        }
+
+        .form-check-input:checked {
+            background-color: #fe424d !important;
+            border-color: #fe424d !important;
+        }
+
+        .tax-toggle:hover {
+            background-color: #fff !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+
     <!-- <form method="GET" action="/listings/new">
         <button>Create New Listing</button>
     </form> -->
+    <div class="filter-carousel-container">
+        <button class="scroll-btn left red-btn" id="scrollLeft">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div id="filters">
+            <div class="filter">
+                <div><i class="fa-solid fa-fire"></i></div>
+                <p>Trending</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-bed"></i></div>
+                <p>Rooms</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-mountain-city"></i></div>
+                <p>Iconoic Cities</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-mountain"></i></div>
+                <p>Mountains</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-brands fa-fort-awesome"></i></div>
+                <p>Castles</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-campground"></i></div>
+                <p>Camping</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-cow"></i></div>
+                <p>Farms</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-snowflake"></i></div>
+                <p>Arctic</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-igloo"></i></div>
+                <p>Domes</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-ship"></i></div>
+                <p>Boats</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-tv"></i></div>
+                <p>TV</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-bell-concierge"></i></div>
+                <p>Services</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-regular fa-face-smile"></i></div>
+                <p>Experience</p>
+            </div>
+            <div class="filter">
+                <div><i class="fa-solid fa-house"></i></div>
+                <p>Homes</p>
+            </div>
+
+
+
+        </div>
+        <button class="scroll-btn right red-btn" id="scrollRight"><i class="fa-solid fa-chevron-right"></i></button>
+
+        <!-- this is for last btn -->
+        <div class="tax-toggle d-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light shadow-sm-border">
+            <div class="form-check-reverse form-switch m-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="switchCheckDefault"
+                    style="cursor: pointer;">
+                <label class="form-check-label" for="switchCheckDefault">Display total after taxes</label>
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+
+
     <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
      <% for(let listing of allListings) { %>
      <a href ="/listings/<%= listing._id %>" class="listing-link"> 
