@@ -86,68 +86,20 @@ body{
 }
 
 .show-img{
-    height: 30vh;
+     height: 40vh;        /* about 40% of screen height */
+    width: 100%;
+    object-fit: cover;
+    border-radius: 1rem;
 }
-.btns{
+.btns{ 
     display: flex;
 }
 .show-card{
     padding-left: 0;
     padding-right: 0;
 
-}
+} 
 #map{
-    height:350px;
-    width: 99vh;
-}
-
-
-/* 🌍 Search bar and dropdown button styles */
- .search-btn{
-    background-color: #fe424d;
-    color: #fff;
-    border-radius: 25px;
-    padding: 0 1rem 0 1rem;
-  }
-  .search-btn:hover{
-    background-color: #fe424d;
-    color: #fff;
-  }
-  .search-btn i{
-    display: inline;
-    margin-right: 0.5rem;
-  }
-  .search-inp{
-    border-radius: 25px;
-    padding: 0.5rem 3rem 0.5rem 3rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-  }
-  .dropdown-toggle.red-btn {
-  /* background-color: #fe424d !important; */
-  color: #fff !important;
-  /* border-radius: 15px 0 0 25px !important; */
-  border: 1px solid rgb(77, 76, 76) !important;
-  padding: 0.5rem 1rem;
-}
-.dropdown-menu {
-  max-height: 200px;            /* limit height */
-  overflow-y: auto;             /* enable vertical scroll */
-  overflow-x: hidden;           /* prevent horizontal scroll */
-  border-radius: 10px;          /* rounded corners */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* soft shadow */
-  padding: 5px;
-  transition: all 0.3s ease;
-}
-.dropdown-menu .dropdown-item{
-   border-radius: 6px;
-  padding: 8px 12px;
-  transition: background-color 0.2s ease, transform 0.2s ease; 
-}
-.dropdown-menu .dropdown-item:hover{
-    background-color: #fe424d;
-}
-
-.dropdown-menu::-webkit-scrollbar {
-  width: 6px;
+    height:400px;
+    width:98vh;
 }

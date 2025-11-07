@@ -1,7 +1,5 @@
 
 
-
-
 const Listing = require("../models/listing");
 const axios = require("axios"); // ✅ add this at top
 require("dotenv").config(); // 2 line
