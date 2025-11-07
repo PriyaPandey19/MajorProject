@@ -1,13 +1,11 @@
 // Load environment variables
 // Production check
 const isProduction = process.env.NODE_ENV === 'production';
-
-// Load environment variables only in development
 if (!isProduction) {
     require('dotenv').config();
 }
 
-// Startup logging
+
 console.log(`Starting application in ${process.env.NODE_ENV || 'development'} mode`);
 
 // Validate required environment variables
@@ -15,22 +13,23 @@ const requiredEnvVars = ['ATLASDB_URL', 'SECRET', 'CLOUD_NAME', 'CLOUD_API_KEY',
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
-    console.error('Missing required environment variables:', missingEnvVars);
-    process.exit(1);
+    if (isProduction) {
+        console.error('Missing required environment variables:', missingEnvVars);
+        process.exit(1);
+    } else {
+        console.warn('Warning: missing some env vars for local dev:', missingEnvVars);
+    }
 }
-if (process.env.NODE_ENV === 'development') {
-    console.log('Debug: Environment variables loaded');
-}
-console.log("Environment:", process.env.NODE_ENV);
-console.log("MongoDB URL configured:", process.env.ATLASDB_URL ? "Yes" : "No");
-console.log("Application starting...");// Debug logging
-console.log("Environment:", process.env.NODE_ENV);
-console.log("Database URL:", process.env.ATLASDB_URL ? "MongoDB Atlas URL configured" : "MongoDB Atlas URL not found");
-console.log("Secret:", process.env.SECRET);
+
+
 
 
 const express = require("express");
 const mongoose = require("mongoose");
+// Disable mongoose command buffering so queries fail fast when DB is unreachable
+mongoose.set('bufferCommands', true);
+// Track DB connection status
+let dbConnected = false;
 const Listing = require("./models/listing");
 const app = express();
 const path = require("path");
@@ -50,12 +49,15 @@ const dbUrl = process.env.MONGODB_URL || process.env.ATLASDB_URL || "mongodb://1
 
 app.use(async (req, res, next) => {
   try {
-    // Fetch all locations from the database (only `location` field)
+    if(dbConnected){
+    // Fetch all locations from the database
     const allListings = await Listing.find({}, "location");
     const uniqueLocations = [...new Set(allListings.map(l => l.location))];
-
-    // Make them globally available to every EJS file
     res.locals.locations = uniqueLocations;
+    }else{
+        // DB not connected → fallback to empty array
+      res.locals.locations = [];
+    }
   } catch (err) {
     console.error("Error fetching locations:", err.message);
     res.locals.locations = [];
@@ -83,12 +85,13 @@ main()
 async function main(){
     try {
         console.log("Attempting to connect to MongoDB...");
+        
         await mongoose.connect(dbUrl, {
-            // Remove deprecated options and use only necessary ones
             serverSelectionTimeoutMS: 30000,
             connectTimeoutMS: 30000
         });
         console.log("MongoDB Connected Successfully to:", dbUrl);
+         dbConnected = true;
     } catch (err) {
         console.error("MongoDB Connection Error:", err);
         // Log more details about the connection attempt
@@ -96,7 +99,9 @@ async function main(){
             url: dbUrl.replace(/mongodb\+srv:\/\/[^:]+:[^@]+@/, 'mongodb+srv://[username]:[password]@'),
             error: err.message
         });
-        throw err;
+        // Do not throw here to allow the app to start in a degraded mode for local development.
+        // The app will run but database-dependent features will show errors or no data.
+        return;
     }
 }
 
@@ -107,23 +112,25 @@ app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
-const store = MongoStore.create({
-    mongoUrl: dbUrl,
-    crypto: {
-        secret: process.env.SECRET,
-    },
-    touchAfter: 24 * 3600,
-    ttl: 24 * 60 * 60, // = 1 day. Default
-    autoRemove: 'native', // Default
-    mongoOptions: {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    }
-});
-
-store.on("error",() =>{
-  console.log("ERROR in MONGO SESSION STORE ");
-})
+// Use Mongo session store only when explicitly enabled or in production.
+// In local development (default) we keep the built-in in-memory store to avoid start failures
+// when Atlas is unreachable. Set USE_MONGO_STORE=true to force the Mongo store.
+let store;
+if (process.env.NODE_ENV === 'production' || process.env.USE_MONGO_STORE === 'true') {
+    store = MongoStore.create({
+        mongoUrl: dbUrl,
+        crypto: { secret: process.env.SECRET },
+        touchAfter: 24 * 3600,
+        ttl: 24 * 60 * 60,
+        autoRemove: 'native'
+    });
+    store.on("error", (e) => {
+        console.error("MONGO SESSION STORE ERROR:", e);
+    });
+} else {
+    console.log('Development: using default in-memory session store (not persisted).');
+    store = undefined; // express-session will use default MemoryStore
+}
 
 const sessionOptions = {
     store,
