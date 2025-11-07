@@ -253,5 +253,53 @@
        <% } %>
    </div>
 
+
+   <script>
+        let taxSwitch = document.getElementById("switchCheckDefault");
+        taxSwitch.addEventListener("click", () => {
+            let taxInfo = document.getElementsByClassName("tax-info");
+            for (info of taxInfo) {
+                if (info.style.display != "inline") {
+                    info.style.display = "inline";
+                } else {
+                    info.style.display = "none";
+                }
+            }
+        });
+
+
+
+        const filters = document.getElementById("filters");
+        const leftBtn = document.getElementById("scrollLeft");
+        const rightBtn = document.getElementById("scrollRight");
+
+        leftBtn.addEventListener("click", () => {
+            filters.scrollBy({ left: -300, behavior: "smooth" });
+        });
+
+        rightBtn.addEventListener("click", () => {
+            filters.scrollBy({ left: 300, behavior: "smooth" });
+        });
+
+
+        function toggleWishlist(event, icon) {
+            event.stopPropagation();
+            event.preventDefault();
+
+            icon.classList.toggle("active");
+
+            if (icon.classList.contains("active")) {
+                icon.classList.replace("fa-regular", "fa-solid");
+            } else {
+                icon.classList.replace("fa-solid", "fa-regular");
+            }
+        }
+        function toggleHeart(element) {
+            element.classList.toggle("fa-solid");
+            element.classList.toggle("fa-regular");
+            element.classList.toggle("active");
+        }
+    </script>
+
    
 </body>
