@@ -63,7 +63,8 @@ module.exports.createListing = async (req, res, next) => {
   const newListing = new Listing(req.body.listing);
   newListing.owner = req.user._id;
   newListing.image = { url, filename };
-  newListing.geometry = newListing.geometry.coordinates;
+  //newListing.geometry = newListing.geometry.coordinates;
+  newListing.geometry = { type: "Point", coordinates: [0, 0] };
 
   const location = req.body.listing.location; //3 line
 
