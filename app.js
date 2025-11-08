@@ -32,7 +32,7 @@ mongoose.set('bufferCommands', true);
 let dbConnected = false;
 const Listing = require("./models/listing");
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', 1);  //this line added
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");

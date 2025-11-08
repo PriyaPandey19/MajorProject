@@ -66,6 +66,8 @@ module.exports.createListing = async (req, res, next) => {
   newListing.geometry = newListing.geometry.coordinates;
 
   const location = req.body.listing.location; //3 line
+
+  try{
   const geoResponse = await axios.get(
     "https://nominatim.openstreetmap.org/search",
     {
@@ -88,6 +90,9 @@ module.exports.createListing = async (req, res, next) => {
     console.log("⚠️ No coordinates found for:", location);
     newListing.geometry = { type: "Point", coordinates: [0, 0] }; // fallback
   }
+}catch(error){
+  console.error("🌐 Geocoding failed due to network error/timeout:", error.message);
+}
 
  let savedListings =  await newListing.save();
  console.log(savedListings);
