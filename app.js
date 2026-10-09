@@ -6,7 +6,7 @@ if (!isProduction) {
 }
 
 
-
+//error
 console.log(`Starting application in ${process.env.NODE_ENV || 'development'} mode`);
 
 // Validate required environment variables
