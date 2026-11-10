@@ -7,7 +7,7 @@ if (!isProduction) {
 
 
 
-//console.log(`Starting application in ${process.env.NODE_ENV || 'development'} mode`);
+console.log(`Starting application in ${process.env.NODE_ENV || 'development'} mode`);
 
 // Validate required environment variables
 const requiredEnvVars = ['ATLASDB_URL', 'SECRET', 'CLOUD_NAME', 'CLOUD_API_KEY', 'CLOUD_API_SECRET'];
